@@ -75,12 +75,14 @@ const Header = () => {
             {appContext.state.token1?.symbol}
           </span>
           <FeePercentage>
+            {appContext.state.pool?.feeTier === "100" && <span>0.01%</span>}
             {appContext.state.pool?.feeTier === "500" && <span>0.05%</span>}
             {appContext.state.pool?.feeTier === "3000" && <span>0.3%</span>}
             {appContext.state.pool?.feeTier === "10000" && <span>1%</span>}
           </FeePercentage>
+          <FeePercentage>{appContext.state.network.name}</FeePercentage>
           <a
-            href={`https://info.uniswap.org/#/pools/${appContext.state.pool?.id}`}
+            href={`https://info.uniswap.org/#/${appContext.state.network.id}/pools/${appContext.state.pool?.id}`}
             target="_blank"
             rel="noreferrer"
             aria-label="Open in Uniswap"

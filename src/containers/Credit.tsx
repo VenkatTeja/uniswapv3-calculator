@@ -5,9 +5,8 @@ import styled from "styled-components";
 
 const CreditContainer = styled.div`
   padding: 50px 15px;
-  color: white;
   text-align: center;
-  color: #999;
+  color: #bbb;
   font-size: 0.8rem;
 
   & svg {
@@ -34,7 +33,11 @@ const Credit = () => {
   return (
     <CreditContainer>
       <div>
-        Crafted with <FontAwesomeIcon icon={faHeart} /> by{" "}
+        Sponsored by{" "}
+        <a target="_blank" href="https://unigrants.org">
+          Unigrant
+        </a>{" "}
+        (Wave 7). Crafted with <FontAwesomeIcon icon={faHeart} /> by{" "}
         <a href="https://twitter.com/chunza2542" target="_blank">
           @chunza2542
         </a>

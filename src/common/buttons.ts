@@ -1,8 +1,7 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 const ButtonStyle = styled.button`
   border: 0;
-  color: #ccc;
   font-size: 1rem;
   font-weight: 600;
   border-radius: 12px;
@@ -11,50 +10,62 @@ const ButtonStyle = styled.button`
 `;
 
 export const Button = styled(ButtonStyle)`
-  background: linear-gradient(
-    -30deg,
-    rgba(34, 36, 41, 0.5),
-    rgba(34, 36, 41, 0.7)
-  );
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
   &:hover {
-    background: linear-gradient(
-      -30deg,
-      rgba(34, 36, 41, 0.65),
-      rgba(34, 36, 41, 0.9)
-    );
-    color: white;
+    background: rgba(255, 255, 255, 0.15);
   }
 `;
 
+const DonateButtonAnimation = keyframes`
+  0% {
+    -webkit-box-shadow: 0px 0px 17px -1px rgba(255,255,255,0); 
+    box-shadow: 0px 0px 17px -1px rgba(255,255,255,0);
+  }
+  50% {
+    -webkit-box-shadow: 0px 0px 17px -1px rgba(255,255,255,0.25); 
+    box-shadow: 0px 0px 17px -1px rgba(255,255,255,0.5);
+    transform: scale(1.05);
+  }
+  100% {
+    -webkit-box-shadow: 0px 0px 17px -1px rgba(255,255,255,0); 
+    box-shadow: 0px 0px 17px -1px rgba(255,255,255,0);
+  }
+`;
 export const DangerButton = styled(ButtonStyle)`
-  background: linear-gradient(
-    -30deg,
-    rgba(247, 2, 119, 0.5),
-    rgb(247, 2, 119, 0.7)
+  animation: ${DonateButtonAnimation} 2s ease;
+  animation-iteration-count: infinite;
+  background-image: linear-gradient(
+    to bottom right,
+    #b827fc 0%,
+    #2c90fc 25%,
+    #b8fd33 50%,
+    #fec837 75%,
+    #fd1892 100%
   );
-  &:hover {
-    background: linear-gradient(
-      -30deg,
-      rgba(247, 2, 119, 0.65),
-      rgba(247, 2, 119, 0.9)
-    );
-    color: white;
+  padding: 4px;
+
+  & > span {
+    display: inline-block;
+    /* background: radial-gradient(
+        174.47% 188.91% at 1.84% 0%,
+        rgb(255, 0, 122) 0%,
+        rgb(33, 114, 229) 100%
+      ),
+      rgb(237, 238, 242); */
+    border-radius: 8px;
+    border: 2px solid #000;
+    color: black;
+    padding: 4px 8px;
+    background: white;
   }
 `;
 
 export const PrimaryButton = styled(ButtonStyle)`
-  background: linear-gradient(
-    -30deg,
-    rgba(34, 114, 229, 0.5),
-    rgba(34, 114, 229, 0.7)
-  );
+  background: #1470f1;
+  color: white;
   &:hover {
-    background: linear-gradient(
-      -30deg,
-      rgba(34, 114, 229, 0.65),
-      rgba(34, 114, 229, 0.9)
-    );
-    color: white;
+    background: #2a77fd;
   }
 `;
 export const PrimaryBlockButton = styled(PrimaryButton)`
@@ -68,16 +79,8 @@ export const PrimaryBlockButton = styled(PrimaryButton)`
     transform: scale(1.5);
   }
 
-  background: linear-gradient(
-    -30deg,
-    rgba(34, 114, 229, 0.65),
-    rgba(34, 114, 229, 0.9)
-  );
+  background: #1470f1;
   &:hover {
-    background: linear-gradient(
-      -30deg,
-      rgba(34, 114, 229, 0.85),
-      rgba(34, 114, 229, 1)
-    );
+    background: #2a77fd;
   }
 `;

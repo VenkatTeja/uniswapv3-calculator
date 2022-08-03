@@ -1,11 +1,16 @@
 import axios from "axios";
+import { NETWORKS } from "../common/types";
 import { getTokenLogoURL, sortToken } from "../utils/helper";
 
-const MAINNET = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3";
+let subgraphEndpoint = NETWORKS[0].subgraphEndpoint;
+
+export const updateSubgraphEndpoint = (newEndpoint: string) => {
+  subgraphEndpoint = newEndpoint;
+};
 
 const queryUniswap = async (query: string): Promise<any> => {
   const { data } = await axios({
-    url: MAINNET,
+    url: subgraphEndpoint,
     method: "post",
     data: {
       query,
@@ -88,11 +93,15 @@ export const getTokenList = async (): Promise<V3Token[]> => {
       return token;
     })
     .map((token) => {
-      if (token.name === "Wrapped Ether") {
+      if (token.name === "Wrapped Ether" || token.name === "Wrapped Ethereum") {
         token.name = "Ethereum";
         token.symbol = "ETH";
         token.logoURI =
           "https://cdn.iconscout.com/icon/free/png-128/ethereum-2752194-2285011.png";
+      }
+      if (token.name === "Wrapped Matic") {
+        token.name = "Polygon Native Token";
+        token.symbol = "MATIC";
       }
       return token;
     })

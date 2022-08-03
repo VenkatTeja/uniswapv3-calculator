@@ -8,6 +8,7 @@ import { calculateAvg, findMax, findMin } from "../utils/math";
 
 const Container = styled.div`
   background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
 `;
 const Padding = styled.div`
@@ -125,13 +126,17 @@ const CorrelationChart = () => {
     );
   }, [state.priceRangeValue]);
 
+  if (state.token0PriceChart === null || state.token1PriceChart === null) {
+    return <></>;
+  }
+
   return (
     <Container>
       <Padding>
         <WrappedHeader>
           <Heading>
-            {state.token0?.symbol} / {state.token1?.symbol} Correlation Chart{" "}
-            <Tag>(1mth)</Tag>
+            {state.token0?.symbol} / {state.token1?.symbol} Correlation{" "}
+            <Tag>(1 month)</Tag>
           </Heading>
 
           <div>

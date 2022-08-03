@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import Modal from "react-modal";
 import ReactLoading from "react-loading";
 import { useModalContext } from "../../context/modal/modalContext";
@@ -14,6 +14,7 @@ import {
   getTokenList,
   getVolumn24H,
   Pool,
+  updateSubgraphEndpoint,
   V3Token,
 } from "../../repos/uniswap";
 import SearchTokenPage from "./SearchTokenPage";
@@ -21,10 +22,8 @@ import { useAppContext } from "../../context/app/appContext";
 import { AppActionType } from "../../context/app/appReducer";
 import { sortToken } from "../../utils/helper";
 import { getPriceChart } from "../../repos/coingecko";
-import {
-  ModalActionType,
-  modalContextReducer,
-} from "../../context/modal/modalReducer";
+import { ModalActionType } from "../../context/modal/modalReducer";
+import { Network, NETWORKS } from "../../common/types";
 
 const ModalStyle = {
   overlay: {
@@ -45,8 +44,11 @@ const ModalStyle = {
   },
 };
 const Container = styled.div`
-  width: 400px;
+  width: 370px;
   padding: 15px;
+`;
+const SelectNetworkContainer = styled.div`
+  margin-bottom: 15px;
 `;
 const SelectPairContainer = styled.div`
   display: grid;
@@ -115,7 +117,7 @@ const Tier = styled.div`
 const FeeTiersContainer = styled.div`
   display: grid;
   grid-gap: 7px;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   margin-bottom: 20px;
 `;
 const GoBack = styled.h1`
@@ -135,12 +137,48 @@ const GoBack = styled.h1`
     left: 15px;
   }
 `;
+const NetworkItem = styled.div`
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  transition: 0.3s;
+  width: calc(370px - 10px * 2);
+  margin: 10px;
+  border: 1px solid #333;
+  border-radius: 15px;
+  padding: 10px 15px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  & > img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+
+  & > div {
+    & h5 {
+      margin: 0;
+      font-weight: normal;
+      font-size: 1rem;
+      color: white;
+    }
+    & span {
+      font-size: 0.8rem;
+      color: #999;
+      display: block;
+    }
+  }
+`;
 const Logo = styled.h1`
   color: white;
   margin: 0;
   font-weight: bold;
   font-size: 1.2rem;
-  color: #ddd;
   font-weight: 500;
   display: flex;
   padding: 15px;
@@ -161,15 +199,19 @@ const FEE_TIER_STYLES = {
     background: "rgba(38, 109, 221, 0.25)",
   },
 };
-
 const SelectPairModal = () => {
   const appContext = useAppContext();
   const modalContext = useModalContext();
 
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(
+    NETWORKS[0]
+  );
   const [selectedTokens, setSelectedTokens] = useState<V3Token[] | null[]>([
     null,
     null,
   ]);
+  const [showSelectNetworkPage, setShowSelectNetworkPage] =
+    useState<boolean>(false);
   const [showSelectTokenPage, setShowSelectTokenPage] =
     useState<boolean>(false);
   const [selectedTokenIndex, setSelectedTokenIndex] = useState<number | null>(
@@ -196,7 +238,8 @@ const SelectPairModal = () => {
   const handleSubmit = async () => {
     if (
       isSubmitLoading ||
-      !(selectedTokens[0] && selectedTokens[1] && selectedPool)
+      !(selectedTokens[0] && selectedTokens[1] && selectedPool) ||
+      !selectedNetwork
     ) {
       return;
     }
@@ -212,6 +255,7 @@ const SelectPairModal = () => {
     appContext.dispatch({
       type: AppActionType.RESET_PAIR,
       payload: {
+        network: selectedNetwork,
         pool,
         poolTicks,
         token0,
@@ -247,11 +291,16 @@ const SelectPairModal = () => {
         maxLiquidity = Number(pool.liquidity);
       }
     });
-    setSelectedPool(maxPool);
+    if (maxLiquidity != 0) {
+      setSelectedPool(maxPool);
+    }
   };
 
   const getFeeTier = (feeTier: string) => {
-    return pools.find((pool) => pool.feeTier === feeTier) || null;
+    const pool = pools.find((pool) => pool.feeTier === feeTier);
+    if (!pool) return null;
+    if (+pool.liquidity === 0) return null;
+    return pool;
   };
 
   const getFeeTierPercentage = (feeTier: string) => {
@@ -263,24 +312,30 @@ const SelectPairModal = () => {
       (result, curr) => result + Number(curr.liquidity),
       0
     );
+    if (totalLiquidity === 0) return "Not Available";
     return `${Math.round(
       (100 * Number(tier.liquidity)) / totalLiquidity
     )}% select`;
   };
 
   const getFeeTierStyle = (feeTier: string) => {
-    if (selectedPool?.feeTier === feeTier) {
-      return FEE_TIER_STYLES.ACTIVE;
-    }
-
     if (getFeeTier(feeTier) === null) {
       return FEE_TIER_STYLES.DISABLE;
+    }
+
+    if (selectedPool?.feeTier === feeTier) {
+      return FEE_TIER_STYLES.ACTIVE;
     }
 
     return {};
   };
 
   const fetchTokens = async () => {
+    appContext.dispatch({
+      type: AppActionType.RESET_TOKEN_LIST,
+      payload: { tokenList: [] },
+    });
+
     const tokenList = await getTokenList();
     appContext.dispatch({
       type: AppActionType.RESET_TOKEN_LIST,
@@ -307,6 +362,53 @@ const SelectPairModal = () => {
         isOpen={modalContext.state.isSelectPairModalOpen}
         contentLabel="Example Modal"
       >
+        {showSelectNetworkPage && (
+          <>
+            <GoBack>
+              <div
+                onClick={() => {
+                  setShowSelectNetworkPage(false);
+                }}
+              >
+                <FontAwesomeIcon icon={faArrowLeft} />
+              </div>
+              <span>Select Network</span>
+            </GoBack>
+            {NETWORKS.map((network, i) => {
+              return (
+                <NetworkItem
+                  style={
+                    network.disabled
+                      ? {
+                          cursor: "not-allowed",
+                          background: "rgba(255, 255, 255, 0.1)",
+                          opacity: "0.4",
+                        }
+                      : {}
+                  }
+                  onClick={() => {
+                    if (!network.disabled) {
+                      updateSubgraphEndpoint(network.subgraphEndpoint);
+                      fetchTokens();
+
+                      setSelectedNetwork(network);
+                      setSelectedTokens([null, null]);
+                      setShowSelectNetworkPage(false);
+                      setPools([]);
+                    }
+                  }}
+                  id={`${network.name}_${i}`}
+                >
+                  <img src={network.logoURI} alt={network.name} />
+                  <div>
+                    <h5>{network.name}</h5>
+                    <span>{network.desc}</span>
+                  </div>
+                </NetworkItem>
+              );
+            })}
+          </>
+        )}
         {showSelectTokenPage && (
           <>
             <GoBack>
@@ -326,12 +428,38 @@ const SelectPairModal = () => {
             />
           </>
         )}
-        {!showSelectTokenPage && (
+        {!showSelectTokenPage && !showSelectNetworkPage && (
           <>
             <Logo>
               <span>🦄</span> UniswapCalculator
             </Logo>
             <Container>
+              <Heading>Select Network</Heading>
+              <SelectNetworkContainer>
+                <TokenSelect
+                  onClick={() => {
+                    if (!isSubmitLoading) {
+                      setSelectedPool(null);
+                      setShowSelectNetworkPage(true);
+                    }
+                  }}
+                >
+                  {!selectedNetwork && <span>Select a network</span>}
+                  {selectedNetwork !== null && (
+                    <span>
+                      <img
+                        src={selectedNetwork.logoURI}
+                        alt={selectedNetwork.name}
+                      />
+                      {selectedNetwork.name}
+                    </span>
+                  )}
+                  <span>
+                    <FontAwesomeIcon icon={faChevronDown}></FontAwesomeIcon>
+                  </span>
+                </TokenSelect>
+              </SelectNetworkContainer>
+
               <Heading>Select Pair</Heading>
               <SelectPairContainer>
                 <TokenSelect
@@ -385,6 +513,21 @@ const SelectPairModal = () => {
               <Heading>Select Fee Tier</Heading>
               <FeeTiersContainer>
                 <Tier
+                  style={getFeeTierStyle("100")}
+                  onClick={() => {
+                    if (!isSubmitLoading) {
+                      const tier = getFeeTier("100");
+                      tier && setSelectedPool(tier);
+                    }
+                  }}
+                >
+                  <h4 style={!getFeeTier("100") ? { color: "#999" } : {}}>
+                    0.01%
+                  </h4>
+                  <span>Best for very stable pairs.</span>
+                  <div>{getFeeTierPercentage("100")}</div>
+                </Tier>
+                <Tier
                   style={getFeeTierStyle("500")}
                   onClick={() => {
                     if (!isSubmitLoading) {
@@ -394,7 +537,7 @@ const SelectPairModal = () => {
                   }}
                 >
                   <h4 style={!getFeeTier("500") ? { color: "#999" } : {}}>
-                    0.05% fee
+                    0.05%
                   </h4>
                   <span>Best for stable pairs.</span>
                   <div>{getFeeTierPercentage("500")}</div>
@@ -409,7 +552,7 @@ const SelectPairModal = () => {
                   }}
                 >
                   <h4 style={!getFeeTier("3000") ? { color: "#999" } : {}}>
-                    0.3% fee
+                    0.3%
                   </h4>
                   <span>Best for most pairs.</span>
                   <div>{getFeeTierPercentage("3000")}</div>
@@ -424,7 +567,7 @@ const SelectPairModal = () => {
                   }}
                 >
                   <h4 style={!getFeeTier("10000") ? { color: "#999" } : {}}>
-                    1% fee
+                    1%
                   </h4>
                   <span>Best for exotic pairs.</span>
                   <div>{getFeeTierPercentage("10000")}</div>

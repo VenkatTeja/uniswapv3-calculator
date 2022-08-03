@@ -13,7 +13,7 @@ const NavbarContainer = styled.div`
   align-items: center;
   padding: 15px 30px;
   background: rgb(0, 0, 0, 0.9);
-  position: fixed;
+  position: absolute;
   width: 100vw;
   top: 0;
   z-index: 9999;
@@ -24,7 +24,6 @@ const Logo = styled.h1`
   margin: 0;
   font-weight: bold;
   font-size: 1.2rem;
-  color: #ddd;
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -41,13 +40,26 @@ const Menubar = styled.a`
   align-items: center;
 
   & a {
-    color: #888;
+    color: rgba(255, 255, 255, 0.6);
     font-size: 1.2rem;
     margin-right: 15px;
 
     &:hover {
-      color: #bbb;
+      color: rgba(255, 255, 255, 0.8);
     }
+  }
+`;
+const Gitcoin = styled.div`
+  position: relative;
+
+  & p {
+    font-size: 0.7em;
+    color: white;
+    margin: 0;
+    position: absolute;
+    width: 250px;
+    right: 0;
+    margin-top: 8px;
   }
 `;
 
@@ -77,16 +89,24 @@ const Navbar = () => {
         <a href="mailto:hello@thechun.dev">
           <FontAwesomeIcon icon={faEnvelope} />
         </a>
-        <DangerButton
-          onClick={() => {
-            dispatch({
-              type: ModalActionType.SET_DONATE_MODAL_STATE,
-              payload: true,
-            });
-          }}
+        <a
+          href="https://gitcoin.co/grants/4203/uniswap-calculator-v3"
+          target="_blank"
         >
-          Donate
-        </DangerButton>
+          <Gitcoin>
+            <DangerButton
+            // onClick={() => {
+            //   dispatch({
+            //     type: ModalActionType.SET_DONATE_MODAL_STATE,
+            //     payload: true,
+            //   });
+            // }}
+            >
+              <span>Donate</span>
+            </DangerButton>
+            <p>🌱 Support our project on Gitcoin GR14!</p>
+          </Gitcoin>
+        </a>
       </Menubar>
     </NavbarContainer>
   );

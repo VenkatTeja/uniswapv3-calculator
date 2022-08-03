@@ -1,3 +1,4 @@
+import { Network } from "../../common/types";
 import { PriceChart } from "../../repos/coingecko";
 import { Pool, Tick, V3Token } from "../../repos/uniswap";
 import { AppContextState } from "./appContext";
@@ -21,12 +22,13 @@ export type AppAction =
   | {
       type: AppActionType.RESET_PAIR;
       payload: {
+        network: Network;
         pool: Pool;
         poolTicks: Tick[];
         token0: V3Token;
         token1: V3Token;
-        token0PriceChart: PriceChart;
-        token1PriceChart: PriceChart;
+        token0PriceChart: PriceChart | null;
+        token1PriceChart: PriceChart | null;
         volume24H: number;
       };
     }
@@ -58,6 +60,7 @@ export const appReducer = (
     }
     case AppActionType.RESET_PAIR: {
       const {
+        network,
         pool,
         poolTicks,
         token0,
@@ -69,6 +72,7 @@ export const appReducer = (
 
       return {
         ...state,
+        network,
         pool,
         poolTicks,
         token0,
